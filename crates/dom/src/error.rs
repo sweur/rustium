@@ -16,12 +16,19 @@ pub enum DomError {
     StringBudgetExceeded {
         limit: usize,
     },
+    AttributeLimitExceeded {
+        limit: usize,
+    },
     /// Parent is a text node, or parent and child are the same node.
     InvalidParent,
-    /// Child is the root or already has a parent.
+    /// The node is the root or already has a parent.
     AlreadyAttached,
-    /// Phase 1 only attaches detached nodes that have no children.
-    CannotAttachSubtree,
+    /// The reference node has no parent (it is detached, or it is the root).
+    NotAttached,
+    /// The operation would make a node its own ancestor.
+    HierarchyCycle,
+    /// The operation needs a text node.
+    NotText,
 }
 
 impl fmt::Display for DomError {
@@ -36,11 +43,14 @@ impl fmt::Display for DomError {
             DomError::StringBudgetExceeded { limit } => {
                 write!(f, "string budget of {limit} bytes exceeded")
             }
-            DomError::InvalidParent => f.write_str("parent cannot hold this child"),
-            DomError::AlreadyAttached => f.write_str("child is the root or already has a parent"),
-            DomError::CannotAttachSubtree => {
-                f.write_str("only childless, detached nodes can be attached in this version")
+            DomError::AttributeLimitExceeded { limit } => {
+                write!(f, "attribute limit of {limit} per element exceeded")
             }
+            DomError::InvalidParent => f.write_str("parent cannot hold this child"),
+            DomError::AlreadyAttached => f.write_str("node is the root or already has a parent"),
+            DomError::NotAttached => f.write_str("reference node has no parent"),
+            DomError::HierarchyCycle => f.write_str("operation would create a cycle"),
+            DomError::NotText => f.write_str("node is not a text node"),
         }
     }
 }

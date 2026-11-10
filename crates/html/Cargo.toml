@@ -1,0 +1,9 @@
+[package]
+name = "rustium-html"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+html5ever = "0.40.1"
+rustium-dom = { path = "../dom" }

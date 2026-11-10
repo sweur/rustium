@@ -42,7 +42,7 @@ fn run() -> Result<(), DomError> {
         let indent = "  ".repeat(depth(&doc, id)?);
         match doc.node(id)?.kind() {
             NodeKind::Document => println!("{indent}#document"),
-            NodeKind::Element { tag } => println!("{indent}<{tag}>"),
+            NodeKind::Element(el) => println!("{indent}<{}>", el.tag()),
             NodeKind::Text(text) => println!("{indent}\"{text}\""),
         }
     }

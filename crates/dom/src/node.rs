@@ -23,11 +23,82 @@ impl NodeId {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+/// Element namespace. The HTML parser only produces these three.
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum Namespace {
+    Html,
+    Svg,
+    MathMl,
+}
+
+#[derive(Debug)]
+pub struct Attribute {
+    name: Box<str>,
+    value: Box<str>,
+}
+
+impl Attribute {
+    pub(crate) fn new(name: &str, value: &str) -> Attribute {
+        Attribute {
+            name: Box::from(name),
+            value: Box::from(value),
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn value(&self) -> &str {
+        &self.value
+    }
+}
+
+#[derive(Debug)]
+pub struct ElementData {
+    namespace: Namespace,
+    tag: Box<str>,
+    attributes: Box<[Attribute]>,
+}
+
+impl ElementData {
+    pub(crate) fn new(namespace: Namespace, tag: &str, attributes: &[(&str, &str)]) -> ElementData {
+        ElementData {
+            namespace,
+            tag: Box::from(tag),
+            attributes: attributes
+                .iter()
+                .map(|(name, value)| Attribute::new(name, value))
+                .collect(),
+        }
+    }
+
+    pub fn namespace(&self) -> Namespace {
+        self.namespace
+    }
+
+    pub fn tag(&self) -> &str {
+        &self.tag
+    }
+
+    pub fn attributes(&self) -> &[Attribute] {
+        &self.attributes
+    }
+
+    /// Value of the first attribute with this exact name.
+    pub fn attribute(&self, name: &str) -> Option<&str> {
+        self.attributes
+            .iter()
+            .find(|a| &*a.name == name)
+            .map(Attribute::value)
+    }
+}
+
+#[derive(Debug)]
 pub enum NodeKind {
     Document,
-    Element { tag: Box<str> },
-    Text(Box<str>),
+    Element(Box<ElementData>),
+    Text(String),
 }
 
 #[derive(Debug)]
@@ -36,6 +107,7 @@ pub struct Node {
     pub(crate) first_child: Option<NodeId>,
     pub(crate) last_child: Option<NodeId>,
     pub(crate) next_sibling: Option<NodeId>,
+    pub(crate) prev_sibling: Option<NodeId>,
     pub(crate) kind: NodeKind,
 }
 
@@ -46,6 +118,7 @@ impl Node {
             first_child: None,
             last_child: None,
             next_sibling: None,
+            prev_sibling: None,
             kind,
         }
     }
@@ -64,6 +137,10 @@ impl Node {
 
     pub fn next_sibling(&self) -> Option<NodeId> {
         self.next_sibling
+    }
+
+    pub fn prev_sibling(&self) -> Option<NodeId> {
+        self.prev_sibling
     }
 
     pub fn kind(&self) -> &NodeKind {
@@ -87,6 +164,8 @@ mod tests {
         // Informational. Run with `-- --nocapture` to see the numbers.
         println!("size_of::<Node>() = {}", size_of::<Node>());
         println!("size_of::<NodeKind>() = {}", size_of::<NodeKind>());
+        println!("size_of::<ElementData>() = {}", size_of::<ElementData>());
+        println!("size_of::<Attribute>() = {}", size_of::<Attribute>());
     }
 
     #[test]
