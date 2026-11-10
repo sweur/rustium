@@ -1,5 +1,5 @@
  <p align="center">
-  <img src="assets/logo.png" alt="Rustium logo" width="180">
+  <img src="assets/logo-preview.png" alt="Rustium logo" width="180">
 </p>
 
 <h1 align="center">Rustium</h1>
