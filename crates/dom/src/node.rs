@@ -85,6 +85,17 @@ impl ElementData {
         &self.attributes
     }
 
+    pub(crate) fn push_attributes(&mut self, additions: &[(&str, &str)]) {
+        let mut all = std::mem::take(&mut self.attributes).into_vec();
+        all.extend(
+            additions
+                .iter()
+                .map(|(name, value)| Attribute::new(name, value)),
+        );
+
+        self.attributes = all.into_boxed_slice();
+    }
+
     /// Value of the first attribute with this exact name.
     pub fn attribute(&self, name: &str) -> Option<&str> {
         self.attributes

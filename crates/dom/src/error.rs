@@ -29,6 +29,8 @@ pub enum DomError {
     HierarchyCycle,
     /// The operation needs a text node.
     NotText,
+    /// The operation needs an element.
+    NotElement,
 }
 
 impl fmt::Display for DomError {
@@ -51,6 +53,7 @@ impl fmt::Display for DomError {
             DomError::NotAttached => f.write_str("reference node has no parent"),
             DomError::HierarchyCycle => f.write_str("operation would create a cycle"),
             DomError::NotText => f.write_str("node is not a text node"),
+            DomError::NotElement => f.write_str("node is not an element"),
         }
     }
 }

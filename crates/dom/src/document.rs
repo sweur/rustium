@@ -150,6 +150,54 @@ impl Document {
         Ok(())
     }
 
+    /// Adds the attributes whose names the element does not have yet (the first
+    /// occurrence of a name wins). All limits are checked before any change.
+    pub fn add_missing_attributes(
+        &mut self,
+        node: NodeId,
+        attributes: &[(&str, &str)],
+    ) -> Result<(), DomError> {
+        let NodeKind::Element(element) = &self.node(node)?.kind else {
+            return Err(DomError::NotElement);
+        };
+        let mut to_add: Vec<(&str, &str)> = Vec::new();
+        for &(name, value) in attributes {
+            if element.attribute(name).is_none() && !to_add.iter().any(|(n, _)| *n == name) {
+                to_add.push((name, value));
+            }
+        }
+        if to_add.is_empty() {
+            return Ok(());
+        }
+        let limit = self.limits.max_attributes_per_element;
+        if element.attributes().len().saturating_add(to_add.len()) > limit {
+            return Err(DomError::AttributeLimitExceeded { limit });
+        }
+        let mut bytes = 0usize;
+        for (name, value) in &to_add {
+            bytes = bytes
+                .checked_add(name.len())
+                .and_then(|b| b.checked_add(value.len()))
+                .and_then(|b| b.checked_add(Limits::ATTRIBUTE_OVERHEAD_BYTES))
+                .ok_or(DomError::StringBudgetExceeded {
+                    limit: self.limits.max_string_bytes,
+                })?;
+        }
+        let total = self
+            .string_bytes
+            .checked_add(bytes)
+            .filter(|total| *total <= self.limits.max_string_bytes)
+            .ok_or(DomError::StringBudgetExceeded {
+                limit: self.limits.max_string_bytes,
+            })?;
+        match &mut self.node_mut(node)?.kind {
+            NodeKind::Element(element) => element.push_attributes(&to_add),
+            _ => return Err(DomError::NotElement),
+        }
+        self.string_bytes = total;
+        Ok(())
+    }
+
     /// Appends a detached `child` (with or without descendants) as the last
     /// child of `parent`. All checks run before any mutation.
     pub fn append_child(&mut self, parent: NodeId, child: NodeId) -> Result<(), DomError> {
@@ -952,5 +1000,42 @@ mod tests {
         assert_eq!(doc.quirks_mode(), QuirksMode::NoQuirks);
         doc.set_quirks_mode(QuirksMode::Quirks);
         assert_eq!(doc.quirks_mode(), QuirksMode::Quirks);
+    }
+
+    #[test]
+    fn add_missing_attributes_adds_only_absent_names() {
+        let mut doc = Document::new(Limits {
+            max_attributes_per_element: 3,
+            ..Limits::default()
+        })
+        .unwrap();
+        let el = doc
+            .create_element_with(Namespace::Html, "html", &[("id", "1")])
+            .unwrap();
+        doc.add_missing_attributes(el, &[("id", "2"), ("class", "c"), ("class", "d")])
+            .unwrap();
+        let NodeKind::Element(data) = doc.node(el).unwrap().kind() else {
+            panic!("expected an element");
+        };
+        assert_eq!(data.attributes().len(), 2);
+        assert_eq!(data.attribute("id"), Some("1"));
+        assert_eq!(data.attribute("class"), Some("c"));
+
+        // Nothing new to add is a no-op; exceeding the cap changes nothing.
+        doc.add_missing_attributes(el, &[("id", "9")]).unwrap();
+        assert_eq!(
+            doc.add_missing_attributes(el, &[("a", "1"), ("b", "2")]),
+            Err(DomError::AttributeLimitExceeded { limit: 3 })
+        );
+        let NodeKind::Element(data) = doc.node(el).unwrap().kind() else {
+            panic!("expected an element");
+        };
+        assert_eq!(data.attributes().len(), 2);
+
+        let text = doc.create_text("t").unwrap();
+        assert_eq!(
+            doc.add_missing_attributes(text, &[("a", "1")]),
+            Err(DomError::NotElement)
+        );
     }
 }
