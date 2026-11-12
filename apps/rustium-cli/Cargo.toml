@@ -6,3 +6,4 @@ publish.workspace = true
 
 [dependencies]
 rustium-dom = { path = "../../crates/dom" }
+rustium-html = { path = "../../crates/html" }
