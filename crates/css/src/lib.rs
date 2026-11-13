@@ -10,7 +10,7 @@ mod tokenizer;
 
 pub use limits::CssLimits;
 pub use selector::{
-    parse_selector_list, parse_selector_text, Compound, Selector, SelectorError, Specificity,
+    Compound, Selector, SelectorError, Specificity, parse_selector_list, parse_selector_text,
 };
 pub use token::Token;
-pub use tokenizer::{preprocess, Tokenizer};
+pub use tokenizer::{Tokenizer, preprocess};

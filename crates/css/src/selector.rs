@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::limits::CssLimits;
 use crate::token::Token;
-use crate::tokenizer::{preprocess, Tokenizer};
+use crate::tokenizer::{Tokenizer, preprocess};
 
 /// Selector specificity (ids, classes, types), packed so that comparing the
 /// numbers compares the tuples. Each part saturates at 1023.
@@ -154,10 +154,7 @@ fn parse_one(
                 }
                 current.add_part(limits)?;
             }
-            Some(Token::Hash {
-                value,
-                is_id: true,
-            }) => {
+            Some(Token::Hash { value, is_id: true }) => {
                 current.ids.push(boxed(value, limits)?);
                 current.add_part(limits)?;
                 ids += 1;
@@ -221,10 +218,7 @@ pub fn parse_selector_list(
 }
 
 /// Tokenizes and parses selector text (for tests and future selector queries).
-pub fn parse_selector_text(
-    text: &str,
-    limits: &CssLimits,
-) -> Result<Vec<Selector>, SelectorError> {
+pub fn parse_selector_text(text: &str, limits: &CssLimits) -> Result<Vec<Selector>, SelectorError> {
     let text = preprocess(text);
     let tokens: Vec<Token<'_>> = Tokenizer::new(&text)
         .take(limits.max_prelude_tokens + 1)
@@ -281,11 +275,7 @@ mod tests {
     #[test]
     fn descendant_chains() {
         let list = parse("ul li a");
-        let tags: Vec<Option<&str>> = list[0]
-            .compounds
-            .iter()
-            .map(|c| c.tag.as_deref())
-            .collect();
+        let tags: Vec<Option<&str>> = list[0].compounds.iter().map(|c| c.tag.as_deref()).collect();
         assert_eq!(tags, [Some("ul"), Some("li"), Some("a")]);
         assert_eq!(list[0].specificity, Specificity::new(0, 0, 3));
         assert_eq!(parse("div   p\n\tspan")[0].compounds.len(), 3);
@@ -336,8 +326,8 @@ mod tests {
         let at = |text: String| parse_selector_text(&text, &limits());
         assert!(at(vec!["a"; 32].join(",")).is_ok());
         assert_eq!(at(vec!["a"; 33].join(",")), Err(SelectorError::TooComplex));
-        assert!(at(vec!["a"; 8].join(" ")).is_ok());
-        assert_eq!(at(vec!["a"; 9].join(" ")), Err(SelectorError::TooComplex));
+        assert!(at(["a"; 8].join(" ")).is_ok());
+        assert_eq!(at(["a"; 9].join(" ")), Err(SelectorError::TooComplex));
         assert!(at(".a".repeat(16)).is_ok());
         assert_eq!(at(".a".repeat(17)), Err(SelectorError::TooComplex));
         assert!(at(format!(".{}", "n".repeat(256))).is_ok());

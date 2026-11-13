@@ -9,14 +9,20 @@ pub enum Token<'a> {
     Function(Cow<'a, str>),
     AtKeyword(Cow<'a, str>),
     /// `#name`; `is_id` is true when the name is also a valid identifier.
-    Hash { value: Cow<'a, str>, is_id: bool },
+    Hash {
+        value: Cow<'a, str>,
+        is_id: bool,
+    },
     String(Cow<'a, str>),
     BadString,
     /// `url(...)` with an unquoted argument.
     Url(Cow<'a, str>),
     BadUrl,
     Delim(char),
-    Number { value: f32, is_integer: bool },
+    Number {
+        value: f32,
+        is_integer: bool,
+    },
     Percentage(f32),
     Dimension {
         value: f32,

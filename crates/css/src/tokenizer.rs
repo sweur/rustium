@@ -169,7 +169,8 @@ impl<'a> Tokenizer<'a> {
                 }
                 Some('\\') if valid_escape(a, b) => {
                     let here = self.pos;
-                    let text = owned.get_or_insert_with(|| src.get(start..here).unwrap_or("").to_string());
+                    let text =
+                        owned.get_or_insert_with(|| src.get(start..here).unwrap_or("").to_string());
                     self.pos += 1;
                     let decoded = self.consume_escape();
                     text.push(decoded);
@@ -208,10 +209,7 @@ impl<'a> Tokenizer<'a> {
             }
         }
         let text = self.src.get(start..self.pos).unwrap_or("0");
-        let value = text
-            .parse::<f32>()
-            .unwrap_or(0.0)
-            .clamp(f32::MIN, f32::MAX);
+        let value = text.parse::<f32>().unwrap_or(0.0).clamp(f32::MIN, f32::MAX);
         (value, is_integer)
     }
 
