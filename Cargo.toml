@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/dom", "crates/html", "apps/rustium-cli"]
+members = ["crates/dom", "crates/css", "crates/html", "apps/rustium-cli"]
 
 [workspace.package]
 version = "0.1.0"

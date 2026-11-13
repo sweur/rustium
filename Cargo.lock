@@ -179,6 +179,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustium-css"
+version = "0.1.0"
+
+[[package]]
 name = "rustium-dom"
 version = "0.1.0"
 
