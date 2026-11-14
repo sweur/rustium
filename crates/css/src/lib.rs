@@ -13,14 +13,14 @@ mod tokenizer;
 mod value;
 mod values;
 
-pub use declaration::{parse_declaration_list, Declaration, ParsedDeclarations};
+pub use declaration::{Declaration, ParsedDeclarations, parse_declaration_list};
 pub use error::CssError;
 pub use limits::CssLimits;
 pub use selector::{
-    parse_selector_list, parse_selector_text, Compound, Selector, SelectorError, Specificity,
+    Compound, Selector, SelectorError, Specificity, parse_selector_list, parse_selector_text,
 };
 pub use token::Token;
-pub use tokenizer::{preprocess, Tokenizer};
+pub use tokenizer::{Tokenizer, preprocess};
 pub use value::{
     BorderStyle, Color, ColorValue, Display, FontStyle, Length, LineHeight, PropertyId, TextAlign,
     Value,

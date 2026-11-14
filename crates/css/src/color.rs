@@ -83,7 +83,9 @@ fn parse_rgb_args(args: &[Token<'_>]) -> Option<Color> {
         .filter(|token| !matches!(token, Token::Whitespace))
         .collect();
     let count = significant.len();
-    let legacy = significant.iter().any(|token| matches!(token, Token::Comma));
+    let legacy = significant
+        .iter()
+        .any(|token| matches!(token, Token::Comma));
     let (shape_ok, has_alpha) = if legacy {
         let commas_ok = (count == 5 || count == 7)
             && significant

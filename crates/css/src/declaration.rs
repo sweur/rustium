@@ -5,7 +5,7 @@ use crate::color::parse_color_prefix;
 use crate::error::CssError;
 use crate::limits::CssLimits;
 use crate::token::Token;
-use crate::tokenizer::{preprocess, Tokenizer};
+use crate::tokenizer::{Tokenizer, preprocess};
 use crate::value::{PropertyId, Value};
 use crate::values::{css_wide, parse_longhand, single, trim};
 
@@ -139,7 +139,12 @@ fn expand_box(
     )
 }
 
-fn border_declarations(width: &Value, style: &Value, color: &Value, important: bool) -> Vec<Declaration> {
+fn border_declarations(
+    width: &Value,
+    style: &Value,
+    color: &Value,
+    important: bool,
+) -> Vec<Declaration> {
     let mut out = Vec::with_capacity(12);
     for ((&w, &s), &c) in BORDER_WIDTHS
         .iter()
@@ -261,11 +266,7 @@ fn strip_important<'t, 'a>(tokens: &'t [Token<'a>]) -> Option<&'t [Token<'a>]> {
 }
 
 /// Parses one declaration. Returns false if it must be dropped.
-fn parse_declaration(
-    tokens: &[Token<'_>],
-    limits: &CssLimits,
-    out: &mut Vec<Declaration>,
-) -> bool {
+fn parse_declaration(tokens: &[Token<'_>], limits: &CssLimits, out: &mut Vec<Declaration>) -> bool {
     let Some((Token::Ident(name), rest)) = trim(tokens).split_first() else {
         return false;
     };
@@ -319,7 +320,10 @@ fn finish_declaration(
         out.dropped += 1;
         return;
     }
-    if tokens.iter().all(|token| matches!(token, Token::Whitespace)) {
+    if tokens
+        .iter()
+        .all(|token| matches!(token, Token::Whitespace))
+    {
         return;
     }
     let before = out.declarations.len();
@@ -408,9 +412,7 @@ pub fn parse_declaration_list(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::value::{
-        BorderStyle, Color, ColorValue, FontStyle, Length, LineHeight, TextAlign,
-    };
+    use crate::value::{BorderStyle, Color, ColorValue, FontStyle, Length, LineHeight, TextAlign};
     use std::collections::HashSet;
 
     fn parse(text: &str) -> ParsedDeclarations {
@@ -830,8 +832,7 @@ mod tests {
 
     #[test]
     fn semicolons_inside_urls_and_blocks_do_not_split() {
-        let parsed =
-            parse("color: red; background: url(data:image/png;base64,AA==); width: 1px");
+        let parsed = parse("color: red; background: url(data:image/png;base64,AA==); width: 1px");
         assert_eq!(parsed.declarations.len(), 2);
         assert_eq!(parsed.dropped, 1);
 

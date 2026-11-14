@@ -12,7 +12,10 @@ impl fmt::Display for CssError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             CssError::InputTooLarge { limit, actual } => {
-                write!(f, "CSS of {actual} bytes exceeds the limit of {limit} bytes")
+                write!(
+                    f,
+                    "CSS of {actual} bytes exceeds the limit of {limit} bytes"
+                )
             }
             CssError::LimitExceeded(what) => write!(f, "CSS limit exceeded: {what}"),
         }
